@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ConfigProvider, Layout, Button, Space, Typography, message, theme } from 'antd'
+import logoIcon from './assets/icon.png'
 import { ReloadOutlined, ImportOutlined, EyeOutlined, EyeInvisibleOutlined, GlobalOutlined } from '@ant-design/icons'
 import zhCN from 'antd/locale/zh_CN'
 import enUS from 'antd/locale/en_US'
@@ -71,7 +72,7 @@ export default function App() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <img src="/icon.png" alt="logo" style={{ width: 44, height: 44, borderRadius: 10 }} />
+            <img src={logoIcon} alt="logo" style={{ width: 44, height: 44, borderRadius: 10 }} />
             <div>
               <div style={{ fontSize: 17, fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>
                 WSL Manager
