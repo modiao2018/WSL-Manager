@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://img.icons8.com/fluency/96/linux--v1.png" alt="WSL Manager Logo" width="96" height="96" />
+  <img src="./logo.png" alt="WSL Manager" width="320" />
 </p>
 
 <h1 align="center">WSL Manager</h1>

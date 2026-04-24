@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ConfigProvider, Layout, Button, Space, Typography, message, theme } from 'antd'
-import { ReloadOutlined, ImportOutlined, LinuxOutlined, EyeOutlined, EyeInvisibleOutlined, GlobalOutlined } from '@ant-design/icons'
+import { ReloadOutlined, ImportOutlined, EyeOutlined, EyeInvisibleOutlined, GlobalOutlined } from '@ant-design/icons'
 import zhCN from 'antd/locale/zh_CN'
 import enUS from 'antd/locale/en_US'
 import { useTranslation } from 'react-i18next'
@@ -70,20 +70,8 @@ export default function App() {
             WebkitAppRegion: 'drag'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 10,
-                background: 'rgba(255,255,255,0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <LinuxOutlined style={{ fontSize: 20, color: '#fff' }} />
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <img src="/icon.png" alt="logo" style={{ width: 44, height: 44, borderRadius: 10 }} />
             <div>
               <div style={{ fontSize: 17, fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>
                 WSL Manager

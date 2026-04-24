@@ -7,10 +7,17 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "pack": "electron-vite build && electron-packager . \"WSL Manager\" --platform=win32 --arch=x64 --out=release --overwrite --asar",
-    "dist": "electron-vite build && electron-packager . \"WSL Manager\" --platform=win32 --arch=x64 --out=release --overwrite --asar"
+    "pack": "electron-vite build && electron-packager . \"WSL Manager\" --platform=win32 --arch=x64 --out=release --overwrite --asar --icon=build/icon.ico",
+    "dist": "electron-vite build && electron-packager . \"WSL Manager\" --platform=win32 --arch=x64 --out=release --overwrite --asar --icon=build/icon.ico"
   },
-  "keywords": ["wsl", "windows", "linux", "electron", "desktop", "manager"],
+  "keywords": [
+    "wsl",
+    "windows",
+    "linux",
+    "electron",
+    "desktop",
+    "manager"
+  ],
   "author": "",
   "license": "MIT",
   "homepage": "https://github.com/modiao2018/WSL-Manager",
@@ -50,6 +57,8 @@
     "electron": "^41.3.0",
     "electron-builder": "^26.8.1",
     "electron-vite": "^5.0.0",
+    "png-to-ico": "^3.0.1",
+    "sharp": "^0.34.5",
     "typescript": "^6.0.3"
   },
   "dependencies": {

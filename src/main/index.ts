@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, Menu } from 'electron'
 import { join } from 'path'
 import { registerWslHandlers } from './wsl-service'
 
@@ -9,6 +9,7 @@ function createWindow(): void {
     minWidth: 800,
     minHeight: 600,
     title: 'WSL Manager',
+    icon: join(__dirname, '../../build/icon.ico'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -24,6 +25,9 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  // Remove all menus
+  Menu.setApplicationMenu(null)
+
   registerWslHandlers()
   createWindow()
 
