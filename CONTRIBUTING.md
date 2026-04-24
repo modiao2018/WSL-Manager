@@ -8,7 +8,7 @@ Thank you for your interest in contributing to WSL Manager! Below are the guidel
 
 ### Reporting Bugs | 报告 Bug
 
-1. Check existing [Issues](https://github.com/USER/WSL-Manager/issues) to avoid duplicates.
+1. Check existing [Issues](https://github.com/modiao2018/WSL-Manager/issues) to avoid duplicates.
 2. Open a new issue with a clear title and description.
 3. Include steps to reproduce, expected behavior, and actual behavior.
 4. Include your Windows version and WSL version.

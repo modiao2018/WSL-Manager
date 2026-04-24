@@ -13,10 +13,10 @@
   "keywords": ["wsl", "windows", "linux", "electron", "desktop", "manager"],
   "author": "",
   "license": "MIT",
-  "homepage": "https://github.com/USER/WSL-Manager",
+  "homepage": "https://github.com/modiao2018/WSL-Manager",
   "repository": {
     "type": "git",
-    "url": "https://github.com/USER/WSL-Manager.git"
+    "url": "https://github.com/modiao2018/WSL-Manager.git"
   },
   "type": "commonjs",
   "build": {

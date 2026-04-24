@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/USER/WSL-Manager/releases"><img src="https://img.shields.io/github/v/release/USER/WSL-Manager?style=flat-square" alt="Release" /></a>
-  <a href="https://github.com/USER/WSL-Manager/blob/main/LICENSE"><img src="https://img.shields.io/github/license/USER/WSL-Manager?style=flat-square" alt="License" /></a>
-  <a href="https://github.com/USER/WSL-Manager/stargazers"><img src="https://img.shields.io/github/stars/USER/WSL-Manager?style=flat-square" alt="Stars" /></a>
+  <a href="https://github.com/modiao2018/WSL-Manager/releases"><img src="https://img.shields.io/github/v/release/modiao2018/WSL-Manager?style=flat-square" alt="Release" /></a>
+  <a href="https://github.com/modiao2018/WSL-Manager/blob/main/LICENSE"><img src="https://img.shields.io/github/license/modiao2018/WSL-Manager?style=flat-square" alt="License" /></a>
+  <a href="https://github.com/modiao2018/WSL-Manager/stargazers"><img src="https://img.shields.io/github/stars/modiao2018/WSL-Manager?style=flat-square" alt="Stars" /></a>
 </p>
 
 ---
@@ -61,15 +61,15 @@
 
 ### Download | 下载
 
-Download the latest portable `.exe` from the [Releases](https://github.com/USER/WSL-Manager/releases) page.
+Download the latest portable `.exe` from the [Releases](https://github.com/modiao2018/WSL-Manager/releases) page.
 
-从 [Releases](https://github.com/USER/WSL-Manager/releases) 页面下载最新的便携式 `.exe`。
+从 [Releases](https://github.com/modiao2018/WSL-Manager/releases) 页面下载最新的便携式 `.exe`。
 
 ### Build from Source | 从源码构建
 
 ```bash
 # Clone the repository | 克隆仓库
-git clone https://github.com/USER/WSL-Manager.git
+git clone https://github.com/modiao2018/WSL-Manager.git
 cd WSL-Manager
 
 # Install dependencies | 安装依赖
