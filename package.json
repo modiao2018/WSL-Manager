@@ -1,0 +1,63 @@
+{
+  "name": "wsl-manager",
+  "version": "1.0.0",
+  "description": "A modern desktop application for managing WSL (Windows Subsystem for Linux) distributions",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "pack": "electron-vite build && electron-packager . \"WSL Manager\" --platform=win32 --arch=x64 --out=release --overwrite --asar",
+    "dist": "electron-vite build && electron-packager . \"WSL Manager\" --platform=win32 --arch=x64 --out=release --overwrite --asar"
+  },
+  "keywords": ["wsl", "windows", "linux", "electron", "desktop", "manager"],
+  "author": "",
+  "license": "MIT",
+  "homepage": "https://github.com/USER/WSL-Manager",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/USER/WSL-Manager.git"
+  },
+  "type": "commonjs",
+  "build": {
+    "appId": "com.wsl-manager.app",
+    "productName": "WSL Manager",
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "WSL Manager"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*"
+    ]
+  },
+  "devDependencies": {
+    "@electron-toolkit/preload": "^3.0.2",
+    "@electron-toolkit/utils": "^4.0.0",
+    "@electron/packager": "^20.0.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.7.0",
+    "electron": "^41.3.0",
+    "electron-builder": "^26.8.1",
+    "electron-vite": "^5.0.0",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^6.1.1",
+    "antd": "^6.3.6",
+    "i18next": "^26.0.7",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-i18next": "^17.0.4"
+  }
+}
