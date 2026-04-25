@@ -7,7 +7,8 @@ const en = {
     hiddenShown: 'Hidden shown',
     hiddenCount: '{{count}} hidden',
     import: 'Import',
-    refresh: 'Refresh'
+    refresh: 'Refresh',
+    settings: 'Settings'
   },
   distroList: {
     loading: 'Loading WSL distributions...',
@@ -34,7 +35,11 @@ const en = {
     deleteOk: 'Confirm Delete',
     cancel: 'Cancel',
     cloneSuccess: 'Cloned successfully',
-    exportSuccess: 'Exported successfully'
+    exportSuccess: 'Exported successfully',
+    setVSCodePath: 'Set VSCode Path',
+    vsCodePathTitle: 'VSCode Project Path',
+    vsCodePathPlaceholder: 'e.g. /home/user/project',
+    vsCodePathSaved: 'Path saved'
   },
   cloneDialog: {
     title: 'Clone "{{name}}"',
@@ -45,7 +50,8 @@ const en = {
     ok: 'Clone',
     cancel: 'Cancel',
     nameRequired: 'Please enter a new distribution name',
-    pathRequired: 'Please select an install path'
+    pathRequired: 'Please select an install path',
+    cloning: 'Cloning in progress, please wait...'
   },
   importDialog: {
     title: 'Import WSL Distribution',
@@ -67,6 +73,24 @@ const en = {
     actionError: 'Operation failed',
     hidden: '"{{name}}" has been hidden',
     unhidden: '"{{name}}" has been unhidden'
+  },
+  settings: {
+    title: 'Settings',
+    generalSection: 'General',
+    languageLabel: 'Language',
+    pathSection: 'Paths',
+    installRootLabel: 'Default install root path',
+    installRootPlaceholder: 'e.g. C:\\WSL',
+    ok: 'Save',
+    cancel: 'Cancel',
+    saveSuccess: 'Settings saved'
+  },
+  update: {
+    newVersion: 'New Version Available',
+    currentVersion: 'Current: v{{current}}',
+    latestVersion: 'Latest: v{{latest}}',
+    goDownload: 'Download',
+    later: 'Later'
   }
 }
 

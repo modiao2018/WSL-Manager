@@ -1,6 +1,6 @@
 {
   "name": "wsl-manager",
-  "version": "1.0.0",
+  "version": "1.1.0"
   "description": "A modern desktop application for managing WSL (Windows Subsystem for Linux) distributions",
   "main": "./out/main/index.js",
   "scripts": {

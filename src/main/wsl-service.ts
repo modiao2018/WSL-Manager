@@ -1,9 +1,70 @@
 import { execFile, spawn } from 'child_process'
 import { promisify } from 'util'
-import { stat, readdir } from 'fs/promises'
-import { ipcMain, shell, dialog, BrowserWindow } from 'electron'
+import { stat, readdir, readFile, writeFile, mkdir } from 'fs/promises'
+import { join, dirname } from 'path'
+import { Transform } from 'stream'
+import { ipcMain, shell, dialog, BrowserWindow, app, net } from 'electron'
 
 const execFileAsync = promisify(execFile)
+
+// --- Settings persistence ---
+interface AppSettings {
+  defaultInstallRoot: string
+  language: string
+  vscodePaths: Record<string, string>
+}
+
+const DEFAULT_SETTINGS: AppSettings = { defaultInstallRoot: '', language: '', vscodePaths: {} }
+
+function settingsPath(): string {
+  return join(app.getPath('userData'), 'settings.json')
+}
+
+async function getSettings(): Promise<AppSettings> {
+  try {
+    const raw = await readFile(settingsPath(), 'utf-8')
+    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) }
+  } catch {
+    return { ...DEFAULT_SETTINGS }
+  }
+}
+
+async function saveSettings(settings: AppSettings): Promise<void> {
+  const p = settingsPath()
+  await mkdir(dirname(p), { recursive: true })
+  await writeFile(p, JSON.stringify(settings, null, 2), 'utf-8')
+}
+
+/** Inspect registry to find a common install root among existing WSL distros */
+async function getDefaultInstallRoot(): Promise<string> {
+  try {
+    const { stdout } = await execFileAsync(
+      'reg.exe',
+      ['query', 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Lxss', '/s'],
+      { encoding: 'utf8' }
+    )
+    const blocks = stdout.split(/\r?\n\r?\n/)
+    const paths: string[] = []
+    for (const block of blocks) {
+      const pathMatch = block.match(/BasePath\s+REG_SZ\s+(.+)/)
+      if (pathMatch) {
+        const resolved = pathMatch[1].trim().replace(/^\\\\\?\\/, '')
+        paths.push(dirname(resolved))
+      }
+    }
+    if (paths.length > 0) {
+      // Return the most common parent directory
+      const freq: Record<string, number> = {}
+      for (const p of paths) {
+        freq[p] = (freq[p] || 0) + 1
+      }
+      return Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0]
+    }
+  } catch {
+    // ignore
+  }
+  return 'C:\\WSL'
+}
 
 export interface WslDistro {
   name: string
@@ -120,22 +181,33 @@ async function deleteDistro(name: string): Promise<void> {
 async function cloneDistro(
   source: string,
   newName: string,
-  installPath: string
+  installPath: string,
+  onProgress?: (transferred: number) => void
 ): Promise<void> {
-  // Use a temp pipe: export source to stdout, import from stdin
+  // Use tar-based pipe (not --vhd) to create a fully independent distro
   return new Promise((resolve, reject) => {
-    const exportProc = spawn('wsl.exe', ['--export', source, '--vhd', '-'], {
+    const exportProc = spawn('wsl.exe', ['--export', source, '-'], {
       stdio: ['ignore', 'pipe', 'pipe']
     })
     const importProc = spawn(
       'wsl.exe',
-      ['--import', newName, installPath, '--vhd', '-'],
+      ['--import', newName, installPath, '-'],
       {
         stdio: ['pipe', 'pipe', 'pipe']
       }
     )
 
-    exportProc.stdout.pipe(importProc.stdin)
+    // Track transferred bytes through a passthrough transform
+    let transferred = 0
+    const meter = new Transform({
+      transform(chunk, _encoding, callback) {
+        transferred += chunk.length
+        onProgress?.(transferred)
+        callback(null, chunk)
+      }
+    })
+
+    exportProc.stdout.pipe(meter).pipe(importProc.stdin)
 
     let errorMsg = ''
     exportProc.stderr.on('data', (d) => (errorMsg += d.toString()))
@@ -208,9 +280,17 @@ async function openTerminal(name: string): Promise<void> {
 }
 
 async function openVSCode(name: string): Promise<void> {
-  const { wsPath } = await getWorkspacePath(name)
-  // code --folder-uri vscode-remote://wsl+<distro>/path
-  const folderUri = `vscode-remote://wsl+${name}${wsPath}`
+  // Use remembered path or default workspace
+  const settings = await getSettings()
+  const rememberedPath = settings.vscodePaths[name]
+  let targetPath: string
+  if (rememberedPath) {
+    targetPath = rememberedPath
+  } else {
+    const { wsPath } = await getWorkspacePath(name)
+    targetPath = wsPath
+  }
+  const folderUri = `vscode-remote://wsl+${name}${targetPath}`
   spawn('cmd.exe', ['/c', 'code', '--folder-uri', folderUri], {
     detached: true,
     stdio: 'ignore',
@@ -244,7 +324,18 @@ export function registerWslHandlers(): void {
   ipcMain.handle(
     'wsl:clone',
     async (_e, source: string, newName: string, installPath: string) => {
-      await cloneDistro(source, newName, installPath)
+      const win = BrowserWindow.getFocusedWindow()
+      let lastSent = 0
+      await cloneDistro(source, newName, installPath, (transferred) => {
+        // Throttle: send at most every 200ms worth of updates
+        const now = Date.now()
+        if (now - lastSent > 200) {
+          lastSent = now
+          win?.webContents.send('wsl:clone-progress', { transferred })
+        }
+      })
+      // Send final 100% signal
+      win?.webContents.send('wsl:clone-progress', { transferred: -1 })
     }
   )
 
@@ -269,6 +360,17 @@ export function registerWslHandlers(): void {
 
   ipcMain.handle('wsl:openVSCode', async (_e, name: string) => {
     await openVSCode(name)
+  })
+
+  ipcMain.handle('wsl:setVSCodePath', async (_e, name: string, path: string) => {
+    const settings = await getSettings()
+    settings.vscodePaths[name] = path
+    await saveSettings(settings)
+  })
+
+  ipcMain.handle('wsl:getVSCodePath', async (_e, name: string) => {
+    const settings = await getSettings()
+    return settings.vscodePaths[name] || ''
   })
 
   ipcMain.handle('dialog:selectDirectory', async () => {
@@ -298,5 +400,61 @@ export function registerWslHandlers(): void {
       filters: [{ name: 'Files', extensions }]
     })
     return result.canceled ? null : result.filePath
+  })
+
+  // Settings IPC
+  ipcMain.handle('settings:get', async () => {
+    return await getSettings()
+  })
+
+  ipcMain.handle('settings:set', async (_e, settings: AppSettings) => {
+    await saveSettings(settings)
+  })
+
+  ipcMain.handle('settings:getDefaultInstallRoot', async () => {
+    return await getDefaultInstallRoot()
+  })
+
+  // Update check
+  ipcMain.handle('app:checkUpdate', async () => {
+    const currentVersion = app.getVersion()
+    try {
+      const data = await new Promise<string>((resolve, reject) => {
+        const request = net.request({
+          method: 'GET',
+          url: 'https://api.github.com/repos/modiao2018/WSL-Manager/releases/latest'
+        })
+        request.setHeader('User-Agent', 'WSL-Manager')
+        let body = ''
+        request.on('response', (response) => {
+          response.on('data', (chunk) => { body += chunk.toString() })
+          response.on('end', () => resolve(body))
+        })
+        request.on('error', reject)
+        request.end()
+      })
+      const release = JSON.parse(data)
+      const latestVersion = (release.tag_name || '').replace(/^v/, '')
+      if (latestVersion && latestVersion !== currentVersion) {
+        return {
+          hasUpdate: true,
+          currentVersion,
+          latestVersion,
+          releaseUrl: release.html_url || 'https://github.com/modiao2018/WSL-Manager/releases',
+          releaseNotes: release.body || ''
+        }
+      }
+      return { hasUpdate: false, currentVersion, latestVersion: currentVersion }
+    } catch {
+      return { hasUpdate: false, currentVersion, latestVersion: currentVersion }
+    }
+  })
+
+  ipcMain.handle('app:openUrl', (_e, url: string) => {
+    shell.openExternal(url)
+  })
+
+  ipcMain.handle('app:getVersion', () => {
+    return app.getVersion()
   })
 }

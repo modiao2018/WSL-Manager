@@ -8,7 +8,9 @@ import {
   Tooltip,
   message,
   Dropdown,
-  Badge
+  Badge,
+  Modal,
+  Input
 } from 'antd'
 import type { MenuProps } from 'antd'
 import {
@@ -65,6 +67,8 @@ export function DistroCard({
 }: DistroCardProps) {
   const [cloneOpen, setCloneOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [vsCodePathOpen, setVsCodePathOpen] = useState(false)
+  const [vsCodePath, setVsCodePath] = useState('')
   const { t, i18n } = useTranslation()
   const isRunning = distro.state === 'Running'
   const name = distro.name
@@ -96,6 +100,18 @@ export function DistroCard({
     window.wslAPI.openVSCode(name)
   }
 
+  const handleOpenVSCodePathDialog = async () => {
+    const path = await window.wslAPI.getVSCodePath(name)
+    setVsCodePath(path)
+    setVsCodePathOpen(true)
+  }
+
+  const handleSaveVSCodePath = async () => {
+    await window.wslAPI.setVSCodePath(name, vsCodePath.trim())
+    setVsCodePathOpen(false)
+    message.success(t('distroCard.vsCodePathSaved'))
+  }
+
   const moreMenuItems: MenuProps['items'] = [
     {
       key: 'clone',
@@ -108,6 +124,12 @@ export function DistroCard({
       icon: <ExportOutlined />,
       label: t('distroCard.export'),
       onClick: handleExport
+    },
+    {
+      key: 'vscodePath',
+      icon: <VSCodeIcon />,
+      label: t('distroCard.setVSCodePath'),
+      onClick: handleOpenVSCodePathDialog
     },
     { type: 'divider' },
     isHidden
@@ -297,6 +319,7 @@ export function DistroCard({
       <CloneDialog
         open={cloneOpen}
         sourceName={name}
+        sourceDiskSize={distro.diskSize}
         onOk={async (newName, installPath) => {
           await onClone(name, newName, installPath)
           setCloneOpen(false)
@@ -304,6 +327,23 @@ export function DistroCard({
         }}
         onCancel={() => setCloneOpen(false)}
       />
+
+      <Modal
+        title={t('distroCard.vsCodePathTitle')}
+        open={vsCodePathOpen}
+        onOk={handleSaveVSCodePath}
+        onCancel={() => setVsCodePathOpen(false)}
+        okText={t('settings.ok')}
+        cancelText={t('settings.cancel')}
+      >
+        <div style={{ marginTop: 8 }}>
+          <Input
+            placeholder={t('distroCard.vsCodePathPlaceholder')}
+            value={vsCodePath}
+            onChange={(e) => setVsCodePath(e.target.value)}
+          />
+        </div>
+      </Modal>
     </>
   )
 }

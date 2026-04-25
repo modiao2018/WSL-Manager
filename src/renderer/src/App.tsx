@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import { ConfigProvider, Layout, Button, Space, Typography, message, theme } from 'antd'
+import { useState, useEffect } from 'react'
+import { ConfigProvider, Layout, Button, Space, Typography, message, theme, Tooltip, Modal } from 'antd'
 import logoIcon from './assets/icon.png'
-import { ReloadOutlined, ImportOutlined, EyeOutlined, EyeInvisibleOutlined, GlobalOutlined } from '@ant-design/icons'
+import { ReloadOutlined, ImportOutlined, EyeOutlined, EyeInvisibleOutlined, SettingOutlined, GithubOutlined } from '@ant-design/icons'
 import zhCN from 'antd/locale/zh_CN'
 import enUS from 'antd/locale/en_US'
 import { useTranslation } from 'react-i18next'
-import { setLanguage } from './i18n'
 import { useWsl } from './hooks/useWsl'
 import { DistroList } from './components/DistroList'
 import { ImportDialog } from './components/ImportDialog'
+import { SettingsDialog } from './components/SettingsDialog'
 import './types'
 
 const { Content } = Layout
@@ -35,19 +35,39 @@ export default function App() {
   } = useWsl()
 
   const [importOpen, setImportOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [appVersion, setAppVersion] = useState('')
   const { t, i18n } = useTranslation()
+
+  // Fetch app version & check for updates on mount
+  useEffect(() => {
+    window.wslAPI.getVersion().then(setAppVersion)
+    window.wslAPI.checkUpdate().then((info) => {
+      if (info.hasUpdate) {
+        Modal.confirm({
+          title: t('update.newVersion'),
+          content: (
+            <div>
+              <p>{t('update.currentVersion', { current: info.currentVersion })}</p>
+              <p>{t('update.latestVersion', { latest: info.latestVersion })}</p>
+            </div>
+          ),
+          okText: t('update.goDownload'),
+          cancelText: t('update.later'),
+          onOk: () => {
+            window.wslAPI.openUrl(info.releaseUrl || 'https://github.com/modiao2018/WSL-Manager/releases')
+          }
+        })
+      }
+    })
+  }, [])
 
   const runningCount = distros.filter((d) => d.state === 'Running').length
   const isZh = i18n.language.startsWith('zh')
-  const antdLocale = isZh ? zhCN : enUS
-
-  const toggleLang = () => {
-    setLanguage(isZh ? 'en' : 'zh')
-  }
 
   return (
     <ConfigProvider
-      locale={antdLocale}
+      locale={isZh ? zhCN : enUS}
       theme={{
         algorithm: theme.defaultAlgorithm,
         token: {
@@ -74,8 +94,13 @@ export default function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <img src={logoIcon} alt="logo" style={{ width: 44, height: 44, borderRadius: 10 }} />
             <div>
-              <div style={{ fontSize: 17, fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>
-                WSL Manager
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 17, fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>
+                  WSL Manager
+                </span>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>
+                  {appVersion ? `v${appVersion}` : ''}
+                </span>
               </div>
               <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
                 {t('header.stats', { total: distros.length, running: runningCount })}
@@ -85,57 +110,68 @@ export default function App() {
           {/* @ts-expect-error electron css property */}
           <Space style={{ WebkitAppRegion: 'no-drag' }}>
             {hiddenCount > 0 && (
+              <Tooltip title={showHidden ? t('header.hiddenShown') : t('header.hiddenCount', { count: hiddenCount })}>
+                <Button
+                  icon={showHidden ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                  onClick={toggleShowHidden}
+                  ghost
+                  style={{
+                    borderRadius: 8,
+                    borderColor: showHidden ? 'rgba(255,200,0,0.5)' : 'rgba(255,255,255,0.25)',
+                    color: showHidden ? '#ffd666' : '#fff'
+                  }}
+                />
+              </Tooltip>
+            )}
+            <Tooltip title={t('header.import')}>
               <Button
-                icon={showHidden ? <EyeInvisibleOutlined /> : <EyeOutlined />}
-                onClick={toggleShowHidden}
+                icon={<ImportOutlined />}
+                onClick={() => setImportOpen(true)}
                 ghost
                 style={{
                   borderRadius: 8,
-                  borderColor: showHidden ? 'rgba(255,200,0,0.5)' : 'rgba(255,255,255,0.25)',
-                  color: showHidden ? '#ffd666' : '#fff'
+                  borderColor: 'rgba(255,255,255,0.25)',
+                  color: '#fff'
                 }}
-              >
-                {showHidden ? t('header.hiddenShown') : t('header.hiddenCount', { count: hiddenCount })}
-              </Button>
-            )}
-            <Button
-              icon={<ImportOutlined />}
-              onClick={() => setImportOpen(true)}
-              ghost
-              style={{
-                borderRadius: 8,
-                borderColor: 'rgba(255,255,255,0.25)',
-                color: '#fff'
-              }}
-            >
-              {t('header.import')}
-            </Button>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={refresh}
-              loading={loading}
-              ghost
-              style={{
-                borderRadius: 8,
-                borderColor: 'rgba(255,255,255,0.25)',
-                color: '#fff'
-              }}
-            >
-              {t('header.refresh')}
-            </Button>
-            <Button
-              icon={<GlobalOutlined />}
-              onClick={toggleLang}
-              ghost
-              style={{
-                borderRadius: 8,
-                borderColor: 'rgba(255,255,255,0.25)',
-                color: '#fff',
-                minWidth: 40
-              }}
-            >
-              {isZh ? 'EN' : '中文'}
-            </Button>
+              />
+            </Tooltip>
+            <Tooltip title={t('header.refresh')}>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={refresh}
+                loading={loading}
+                ghost
+                style={{
+                  borderRadius: 8,
+                  borderColor: 'rgba(255,255,255,0.25)',
+                  color: '#fff'
+                }}
+              />
+            </Tooltip>
+            <Tooltip title="GitHub">
+              <Button
+                icon={<GithubOutlined />}
+                onClick={() => window.wslAPI.openUrl('https://github.com/modiao2018/WSL-Manager')}
+                ghost
+                style={{
+                  borderRadius: 8,
+                  borderColor: 'rgba(255,255,255,0.25)',
+                  color: '#fff'
+                }}
+              />
+            </Tooltip>
+            <Tooltip title={t('header.settings')}>
+              <Button
+                icon={<SettingOutlined />}
+                onClick={() => setSettingsOpen(true)}
+                ghost
+                style={{
+                  borderRadius: 8,
+                  borderColor: 'rgba(255,255,255,0.25)',
+                  color: '#fff'
+                }}
+              />
+            </Tooltip>
           </Space>
         </div>
 
@@ -165,6 +201,11 @@ export default function App() {
           message.success(t('importDialog.importSuccess'))
         }}
         onCancel={() => setImportOpen(false)}
+      />
+
+      <SettingsDialog
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
       />
     </ConfigProvider>
   )
