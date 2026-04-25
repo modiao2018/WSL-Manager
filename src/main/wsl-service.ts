@@ -435,7 +435,18 @@ export function registerWslHandlers(): void {
       })
       const release = JSON.parse(data)
       const latestVersion = (release.tag_name || '').replace(/^v/, '')
-      if (latestVersion && latestVersion !== currentVersion) {
+      const isNewer = (a: string, b: string): boolean => {
+        const pa = a.split('.').map(Number)
+        const pb = b.split('.').map(Number)
+        for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+          const na = pa[i] || 0
+          const nb = pb[i] || 0
+          if (na > nb) return true
+          if (na < nb) return false
+        }
+        return false
+      }
+      if (latestVersion && isNewer(latestVersion, currentVersion)) {
         return {
           hasUpdate: true,
           currentVersion,
