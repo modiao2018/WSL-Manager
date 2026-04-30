@@ -34,11 +34,8 @@ export function useWsl() {
       const filtered = list.filter(
         (d) => !['docker-desktop', 'docker-desktop-data', 'sandbox-temp'].includes(d.name.toLowerCase())
       )
-      // Running distros first
-      filtered.sort((a, b) => {
-        if (a.state === b.state) return 0
-        return a.state === 'Running' ? -1 : 1
-      })
+      // Stable sort by name to keep card position fixed across state changes
+      filtered.sort((a, b) => a.name.localeCompare(b.name))
       setAllDistros(filtered)
     } catch (err: unknown) {
       message.error(i18n.t('messages.listError') + ': ' + (err instanceof Error ? err.message : String(err)))
